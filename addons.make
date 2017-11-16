@@ -1,0 +1,11 @@
+ofxBlackmagic
+ofxBlur
+ofxDelaunay
+ofxFboBlur
+ofxGui
+ofxHttpUtils
+ofxJSON
+ofxOsc
+ofxPostGlitch
+ofxSvg
+ofxTrueTypeFontUC
