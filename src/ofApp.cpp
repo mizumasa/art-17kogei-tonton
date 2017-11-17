@@ -79,6 +79,7 @@ void ofApp::setup(){
     }
     
     rollCam.setup();//rollCam's setup.
+    rollCam.setPos(0, 45, 0);
     rollCam.setCamSpeed(0.12);//rollCam's speed set;
     rollCam.setScale(2.3);
 
@@ -140,11 +141,13 @@ void ofApp::setup(){
     background.load("background.png");
     b_CamStart = false;
     
+    if(0){
     if(USE_BLACKMAGIC){
         cam.setup(BLACKMAGIC_W, BLACKMAGIC_H, 30);
     }else{
         camMac.setDeviceID(0);
         camMac.initGrabber(WEBCAM_W, WEBCAM_H);
+    }
     }
     
     i_FadingMode = 0;
@@ -208,65 +211,36 @@ void ofApp::setup(){
     
     b_MouseOn = false;
     b_GrabScreen = false;
+    model_base.loadModel("hammer_base.3ds");
+    
+    /*
+    fileName = "movie";
+    fileExt = ".mp4";
+    vidRecorder.setVideoCodec("mpeg4");
+    vidRecorder.setVideoBitrate("8000k");
+    vidRecorder.setAudioCodec("mp3");
+    vidRecorder.setAudioBitrate("192k");
+    ofAddListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
+    soundStream.setup(this, 0, channels, sampleRate, 256, 4);
+*/
+    
+    vidRecorder = ofPtr<ofQTKitGrabber>( new ofQTKitGrabber() );
+    vidGrabber.setGrabber(vidRecorder);
+    videoDevices = vidRecorder->listVideoDevices();
+    audioDevices = vidRecorder->listAudioDevices();
+    ofAddListener(vidRecorder->videoSavedEvent, this, &ofApp::videoSaved);
+    vidGrabber.setup(1280, 720);
+    vidRecorder->initRecording();
+    bLaunchInQuicktime = true;
+
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    if(b_Auto){
-        if(b_TimeLineIdle)timelineIdle();
-    }
     i_StatusStayNum=0;
     i_MaxIntroducedNum = 0;
     i_MinIntroducedNum = 100000;
-    for(int i = 0; i<v_ObjectHuman.size(); i++){
-        v_ObjectHuman[i].update(0);
-        if(v_ObjectHuman[i].getState() == H_STATE_STAY){
-            i_StatusStayNum += 1;
-            if(!(v_ObjectHuman[i].b_NewFaceIntroductionFinished)){
-                v_ObjectHuman[i].b_NewFaceIntroductionFinished = true;
-                vi_IntroduceQue.push_back(i);
-                vi_NewFaceQue.push_back(i);
-                cout << "pushed to NewFace And Introduce que:" << v_ObjectHuman[i].getName()<<endl;
-            }
-            if(i_MaxIntroducedNum < v_ObjectHuman[i].i_IntroducedCount)i_MaxIntroducedNum = v_ObjectHuman[i].i_IntroducedCount;
-            if(i_MinIntroducedNum > v_ObjectHuman[i].i_IntroducedCount)i_MinIntroducedNum = v_ObjectHuman[i].i_IntroducedCount;
-        }
-        if(v_ObjectHuman[i].getState() == H_STATE_STAY && (i!=i_SelectedHuman)){
-            ofVec2f moveDir = ofVec2f(0,0);
-            for(int j = 0; j<v_ObjectHuman.size(); j++){
-                if(v_ObjectHuman[j].getState() == H_STATE_STAY){
-                    moveDir += v_ObjectHuman[i].getSekiryoku(v_ObjectHuman[j].getPosTheta());
-                }
-            }
-            if(abs(moveDir[0]) > 0.05){
-                v_ObjectHuman[i].moveAngleDir(moveDir[0], moveDir[1]);
-            }
-        }
-        if(v_ObjectHuman[i].getState() == H_STATE_LEFT){
-            for(int j=0;j < vi_IntroduceQue.size();j++){
-                if(vi_IntroduceQue[j]==i){
-                    vi_IntroduceQue.erase(vi_IntroduceQue.begin()+j);
-                }
-            }
-        }
-        
-        if(b_RollingCam){
-            v_ObjectHuman[i].setNormalVec(-(rollCam.vf_Pos));
-            v_ObjectHuman[i].setCameraDistance(rollCam.vf_Pos);
-        }else{
-            v_ObjectHuman[i].setNormalVec((v_Camera[i_Camera].getLookAtDir()));
-            v_ObjectHuman[i].setCameraDistance(v_Camera[i_Camera].getPos());
-        }
-        //if(b_MovingCam)v_ObjectHuman[i].move();
-    }
-    for(int i = 0; i<v_Camera.size(); i++){
-        v_Camera[i].update();
-    }
-    
-    ObjectParticleControl.update();
-    for(int i = 0; i<v_ObjectParticle.size(); i++){
-        v_ObjectParticle[i].update();
-    }
     
     if(b_UpdateFbo){
         b_UpdateFbo = false;
@@ -291,13 +265,7 @@ void ofApp::update(){
     gpuBlur.blurOverlayGain = 255;
     
     rollCam.update();   //rollCam's rotate update.
-    
-    if(b_MovingCam){
-        ofVec3f posTheta;
-        posTheta = v_ObjectHuman[i_SelectedHuman].getPosTheta();
-        rollCam.setPos(posTheta.x,posTheta.y,0);
-    }
-    
+
     if(b_ChromeShow){
         if(USE_BLACKMAGIC){
             if(cam.update()){
@@ -315,10 +283,7 @@ void ofApp::update(){
         }
     }
     
-    updateTitleDraw();
-
-    
-    
+    //updateTitleDraw();
     
     switch(i_FadingMode){
         case 0:
@@ -337,10 +302,28 @@ void ofApp::update(){
             break;
     }
     
+    /*
+    if(bRecordingPre and bRecording){
+        bool success = vidRecorder.addFrame(camImg);
+        if (!success) {
+            ofLogWarning("This frame was not added!");
+        }
+    }
+    bRecordingPre = bRecording;
+
+    if (vidRecorder.hasVideoError()) {
+        ofLogWarning("The video recorder failed to write some frames!");
+    }
+    if (vidRecorder.hasAudioError()) {
+        ofLogWarning("The video recorder failed to write some audio samples!");
+    }*/
+
+    if(recordedVideoPlayback.isLoaded()){
+        recordedVideoPlayback.update();
+    }
 
 }
 
-//OSCメッセージをコンソールに出力する関数
 void ofApp::dumpOSC(ofxOscMessage m) {
     string msg_string;
     msg_string = m.getAddress();
@@ -774,9 +757,12 @@ void ofApp::draw(){
                 b_GrabScreen = false;
                 canvas.allocate(CANVAS_SIZE, CANVAS_SIZE, OF_IMAGE_COLOR);
                 canvas.grabScreen(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP, CANVAS_SIZE,CANVAS_SIZE);
+                canvasColorImage.setFromPixels( canvas.getPixels());
+                canvasColorImage.blurGaussian(6);
+                canvasGrayImage = canvasColorImage;
             }
             canvas.draw(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP+CANVAS_SIZE);
-            
+            canvasGrayImage.draw(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP+CANVAS_SIZE*2, CANVAS_SIZE, CANVAS_SIZE);
             
             ofPushStyle();
             ofSetColor(180, 180, 180);
@@ -795,14 +781,32 @@ void ofApp::draw(){
             //background.draw(ofGetWidth(), ofGetHeight());
             areaLight.enable();
             materialPlane.begin();
+            ofPixels canvasPixels;
+            canvasPixels = canvasGrayImage.getPixels();
+            unsigned char* canvasChar;
+            canvasChar = canvasPixels.getData();
 
             
-            //ofTranslate(ofVec3f(0,tan(ofGetElapsedTimeMillis()/1000),0));
-            //ofTranslate(ofVec3f(0,tan(1.0*ofGetElapsedTimeMillis()/300)*100,0));
             ofSetColor(255, 255, 255);
+            int i_height = 0;
+            
+            ofRotateZ(ofGetElapsedTimeMillis()/100.0);
+            //ofRotateY(ofGetElapsedTimeMillis()/100.0);
+            if(canvasGrayImage.getWidth() > 0){
+                for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
+                    for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
+                        i_height = BIT_BASE_HEIGHT;
+                        i_height += int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
+                        ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
+                    }
+                }
+                
+            }
 
-            ofDrawBox(0, 0, 0, 100);
+            //model_base.drawFaces();
 
+            
+            
             materialPlane.end();
 
             
@@ -858,6 +862,23 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+    if(key == ' '){
+        
+        //if it is recording, stop
+        if(vidRecorder->isRecording()){
+            vidRecorder->stopRecording();
+        }
+        else {
+            // otherwise start a new recording.
+            // before starting, make sure that the video file
+            // is already in use by us (i.e. being played), or else
+            // we won't be able to record over it.
+            if(recordedVideoPlayback.isLoaded()){
+                recordedVideoPlayback.close();
+            }
+            vidRecorder->startRecording("MyMovieFile"+ofGetTimestampString()+".mov");
+        }
+    }
     switch(key){
         case 'n':
             vi_NewFaceQue.clear();
@@ -931,6 +952,28 @@ void ofApp::keyPressed(int key){
             rollCam.setScale(1.6);
             i_TitleDrawCount = 1;
             break;
+        case 'r':
+            /*
+            bRecording = !bRecording;
+            if(bRecording && !vidRecorder.isInitialized()) {
+                s_SaveName = fileName+ofGetTimestampString()+fileExt;
+                vidRecorder.setup(s_SaveName, BLACKMAGIC_W, BLACKMAGIC_H, 30, sampleRate, channels);
+                vidRecorder.start();
+            }
+            else if(!bRecording && vidRecorder.isInitialized()) {
+                vidRecorder.setPaused(true);
+            }
+            else if(bRecording && vidRecorder.isInitialized()) {
+                vidRecorder.setPaused(false);
+            }*/
+            
+            break;
+            /*
+        case 'e':
+            bRecording = false;
+            vidRecorder.close();
+            break;
+             */
         case 'a':
             b_Auto = !b_Auto;
             if(b_Auto){
@@ -1053,6 +1096,8 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 }
 
 void ofApp::exit(){
+    //ofRemoveListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
+    //vidRecorder.close();
     if(USE_BLACKMAGIC){
         cam.close();
     }
@@ -1069,104 +1114,6 @@ bool ofApp::inVector(vector<int> _v,int _i){
 }
 
 void ofApp::addSampleData(){
-    if(1){
-        ofxObjectHuman bufHuman;
-        bufHuman.setPos(150, 0, RADIUS*SAMPLE_RADIUS_RATE);
-        
-        bufHuman.setNormalVec(- bufHuman.getPos());
-        bufHuman.regist(0,"face****", "./thumb/2.jpg", "林あいうえお", "AAAAAAAAA", "******* engineer");
-        bufHuman.registPath(0,"face****", "./thumb/2.png",
-                            myFont.getStringAsPoints("林あいうえお"),
-                            myFont.getStringAsPoints("AAAAAAAAA"),
-                            myFont.getStringAsPoints("******* engineer"));
-        bufHuman.vs_FriendsFaceId.push_back("face****1");
-        bufHuman.vs_FriendsFaceId.push_back("face****2");
-        bufHuman.vs_FriendsFaceId.push_back("face****3");
-        bufHuman.setState(H_STATE_STAY);
-        v_ObjectHuman.push_back(bufHuman);
-        
-        ofxObjectHuman bufHuman1;
-        bufHuman1.setPos(0, 0, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman1.setNormalVec(- bufHuman1.getPos());
-        bufHuman1.regist(0,"face****", "./thumb/3.jpg", "南 陽平", "IMJ", "Front-end Engineer");
-        bufHuman1.registPath(0,"face****", "./thumb/3.png",
-                             fontNotoRegu3.getStringAsPoints("南 陽平"),
-                             fontNotoThin3.getStringAsPoints("IMJ"),
-                             fontNotoThin3.getStringAsPoints("Front-end Engineer"));
-        bufHuman1.setState(H_STATE_STAY);
-        bufHuman1.vs_FriendsFaceId.push_back("face****4");
-        bufHuman1.vs_FriendsFaceId.push_back("face****5");
-        bufHuman1.vs_FriendsFaceId.push_back("face****");
-        bufHuman1.vs_WorksName.push_back("MASS RHYTHM");
-        bufHuman1.vs_WorksName.push_back("Nike Unlimited Stadium");
-        bufHuman1.vs_WorksName.push_back("Window with Intelligence");
-        bufHuman1.vs_WorksUrl.push_back("https://www.youtube.com/watch?v=idUodas3EBw");
-        bufHuman1.vs_WorksUrl.push_back("http://prty.jp/work/unlimited-stadium");
-        bufHuman1.vs_WorksUrl.push_back("http://prty.jp/work/wwi");
-        v_ObjectHuman.push_back(bufHuman1);
-        
-        ofxObjectHuman bufHuman2;
-        bufHuman2.setPos(-120, 30, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman2.setNormalVec(- bufHuman2.getPos());
-        bufHuman2.regist(0,"face****1", "./thumb/5.jpg", "馬場あいうえお", "CCCCCCCCC", "******* director");
-        bufHuman2.registPath(0,"face****1", "./thumb/5.png",
-                             myFont.getStringAsPoints("馬場あいうえお"),
-                             myFont.getStringAsPoints("CCCCCCCCC"),
-                             myFont.getStringAsPoints("******* director"));
-        bufHuman2.setState(H_STATE_STAY);
-        v_ObjectHuman.push_back(bufHuman2);
-        
-        ofxObjectHuman bufHuman3;
-        bufHuman3.setPos(30, 0, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman3.setNormalVec(- bufHuman3.getPos());
-        bufHuman3.regist(0,"face****2", "./thumb/5.jpg", "kojima", "CCCCCCCCC", "******* director");
-        bufHuman3.registPath(0,"face****2", "./thumb/6.png",
-                             myFont.getStringAsPoints("kojima"),
-                             myFont.getStringAsPoints("AAAAAAAAA"),
-                             myFont.getStringAsPoints("******* engineer"));
-        bufHuman3.setState(H_STATE_STAY);
-        bufHuman3.vs_WorksName.push_back("MASS RHYTHM");
-        bufHuman3.vs_WorksName.push_back("Nike Unlimited Stadium");
-        bufHuman3.vs_WorksUrl.push_back("https://www.youtube.com/watch?v=idUodas3EBw");
-        bufHuman3.vs_WorksUrl.push_back("http://prty.jp/work/unlimited-stadium");
-        v_ObjectHuman.push_back(bufHuman3);
-        
-        ofxObjectHuman bufHuman4;
-        bufHuman4.setPos(-30, 10, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman4.setNormalVec(- bufHuman4.getPos());
-        bufHuman4.regist(0,"face****3", "./thumb/5.jpg", "馬場あいうえお", "CCCCCCCCC", "******* director");
-        bufHuman4.registPath(0,"face****3", "./thumb/7.png",
-                             myFont.getStringAsPoints("あいうえお"),
-                             myFont.getStringAsPoints("AAAAAAAAA"),
-                             myFont.getStringAsPoints("******* engineer"));
-        bufHuman4.setState(H_STATE_STAY);
-        v_ObjectHuman.push_back(bufHuman4);
-        ofxObjectHuman bufHuman5;
-        bufHuman5.setPos(180, 20, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman5.setNormalVec(- bufHuman5.getPos());
-        bufHuman5.regist(0,"face****4", "./thumb/5.jpg", "馬場あいうえお", "CCCCCCCCC", "******* director");
-        bufHuman5.registPath(0,"face****4", "./thumb/8.png",
-                             myFont.getStringAsPoints("あいうえお"),
-                             myFont.getStringAsPoints("AAAAAAAAA"),
-                             myFont.getStringAsPoints("******* engineer"));
-        bufHuman5.setState(H_STATE_STAY);
-        bufHuman5.vs_FriendsFaceId.push_back("face****1");
-        bufHuman5.vs_FriendsFaceId.push_back("face****2");
-        bufHuman5.vs_FriendsFaceId.push_back("face****3");
-
-        v_ObjectHuman.push_back(bufHuman5);
-        ofxObjectHuman bufHuman6;
-        bufHuman6.setPos(-60, -30, RADIUS*SAMPLE_RADIUS_RATE);
-        bufHuman6.setNormalVec(- bufHuman6.getPos());
-        bufHuman6.regist(0,"face****5", "./thumb/5.jpg", "馬場あいうえお", "CCCCCCCCC", "******* director");
-        bufHuman6.registPath(0,"face****5", "./thumb/9.png",
-                             myFont.getStringAsPoints("あいうえお"),
-                             myFont.getStringAsPoints("AAAAAAAAA"),
-                             myFont.getStringAsPoints("******* engineer"));
-        bufHuman6.setState(H_STATE_STAY);
-        v_ObjectHuman.push_back(bufHuman6);
-    }
-
 }
 
 string ofApp::limitStr(string _str){
@@ -1240,4 +1187,36 @@ void ofApp::drawLogo(){
     30%{ opacity: 1; }
     33%{ opacity: 0.75; }
     36%{ opacity: 1; }*/
+}
+
+/*
+//--------------------------------------------------------------
+void ofApp::audioIn(float *input, int bufferSize, int nChannels){
+    
+    if(bRecording)
+        vidRecorder.addAudioSamples(input, bufferSize, nChannels);
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::recordingComplete(ofxVideoRecorderOutputFileCompleteEventArgs& args){
+    cout << "The recoded video file is now complete." << endl;
+}
+*/
+
+
+//--------------------------------------------------------------
+void ofApp::videoSaved(ofVideoSavedEventArgs& e){
+    // the ofQTKitGrabber sends a message with the file name and any errors when the video is done recording
+    if(e.error.empty()){
+        recordedVideoPlayback.load(e.videoPath);
+        recordedVideoPlayback.play();
+        
+        if(bLaunchInQuicktime) {
+            ofSystem("open " + e.videoPath);
+        }
+    }
+    else {
+        ofLogError("videoSavedEvent") << "Video save error: " << e.error;
+    }
 }

@@ -5,6 +5,7 @@
 #include "ofxObjectParticle.h"
 #include "ofxObjectCamera.h"
 #include "ofxGui.h"
+#include "ofxVideoRecorder.h"
 
 #include "ofxOsc.h"
 
@@ -15,6 +16,9 @@
 #include "ofxTimeLine.h"
 #include "ofxAVString.h"
 #include "ofxSvg.h"
+#include "ofxOpenCv.h"
+
+#include "ofxAssimpModelLoader.h"
 
 
 #define CMD_MAIN_PY "/usr/local/bin/python ~/programming/of_v0.9.8_osx/apps/Art2017/BaPABar/bin/data/main.py"
@@ -24,6 +28,10 @@
 #define CANVAS_MARGIN_LEFT 120
 #define CANVAS_SIZE 120
 
+#define BIT_SIZE 10
+#define BIT_HEIGHT 100
+#define BIT_BASE_HEIGHT 150
+#define BIT_MARGIN 5
 
 #define MIR_X_NUM 5*4
 #define MIR_X_ANG 9*1.5
@@ -223,10 +231,44 @@ public:
     ofImage i_FriendIcon;
     
     ofImage canvas;
+    ofxCvColorImage canvasColorImage;
+    ofxCvGrayscaleImage canvasGrayImage;
     bool b_MouseOn;
     bool b_GrabScreen;
     vector<ofVec2f> vv_MousePoint;
     vector<vector<ofVec2f>> vvv_MousePoint;
+    
+    ofxAssimpModelLoader model_base;
+
+/*
+    ofxVideoRecorder    vidRecorder;
+    ofSoundStream       soundStream;
+    bool bRecording;
+    bool bRecordingPre;
+    int sampleRate;
+    int channels;
+    string fileName;
+    string fileExt;
+    
+    void recordingComplete(ofxVideoRecorderOutputFileCompleteEventArgs& args);
+    string s_SaveName;
+    void audioIn(float * input, int bufferSize, int nChannels);
+*/
+    
+    
+    ofVideoGrabber 			vidGrabber;
+    ofPtr<ofQTKitGrabber>	vidRecorder;
+    
+    ofVideoPlayer recordedVideoPlayback;
+    
+    void videoSaved(ofVideoSavedEventArgs& e);
+    
+    vector<string> videoDevices;
+    vector<string> audioDevices;
+    
+    bool bLaunchInQuicktime;
+
+
 };
 
 
