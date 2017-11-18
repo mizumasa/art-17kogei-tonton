@@ -24,14 +24,25 @@
 #define CMD_MAIN_PY "/usr/local/bin/python ~/programming/of_v0.9.8_osx/apps/Art2017/BaPABar/bin/data/main.py"
 #define CMD_KILL_PY "/usr/local/bin/python ~/programming/of_v0.9.8_osx/apps/Art2017/BaPABar/bin/data/kill.py"
 
-#define CANVAS_MARGIN_TOP 120
-#define CANVAS_MARGIN_LEFT 120
+#define CANVAS_MARGIN_TOP 303
+#define CANVAS_MARGIN_LEFT 163
 #define CANVAS_SIZE 120
+
+//#define CANVAS_MARGIN_TOP 382
+//#define CANVAS_MARGIN_LEFT 75
+//#define CANVAS_SIZE 280
+
+#define ICON_SIZE 50
+
+#define SUZUGAMI_SIZE 1200
+#define SUZUGAMI_BIT_SCALE 0.1
 
 #define BIT_SIZE 10
 #define BIT_HEIGHT 100
 #define BIT_BASE_HEIGHT 150
 #define BIT_MARGIN 5
+
+#define PATTERN_NUM 3
 
 #define MIR_X_NUM 5*4
 #define MIR_X_ANG 9*1.5
@@ -40,6 +51,7 @@
 
 #define NUM 500
 #define SIZE 10
+
 
 class RateTimer {
 protected:
@@ -232,6 +244,8 @@ public:
     
     ofImage canvas;
     ofxCvColorImage canvasColorImage;
+    ofxCvColorImage canvasColorImageBuf;
+    ofxCvColorImage canvasColorImageBuf2;
     ofxCvGrayscaleImage canvasGrayImage;
     bool b_MouseOn;
     bool b_GrabScreen;
@@ -269,6 +283,16 @@ public:
     bool bLaunchInQuicktime;
 
 
+    int i_PatternMode;
+    vector<vector<ofVec2f>> vvv_pattern;
+    int i_pattern[SUZUGAMI_SIZE][SUZUGAMI_SIZE];
+
+    ofImage iconPhone;
+    ofImage icon1;
+    ofImage icon2;
+    ofImage icon3;
+    string guimsg;
+    
 };
 
 

@@ -222,7 +222,7 @@ void ofApp::setup(){
     vidRecorder.setAudioBitrate("192k");
     ofAddListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
     soundStream.setup(this, 0, channels, sampleRate, 256, 4);
-*/
+     */
     
     vidRecorder = ofPtr<ofQTKitGrabber>( new ofQTKitGrabber() );
     vidGrabber.setGrabber(vidRecorder);
@@ -232,8 +232,40 @@ void ofApp::setup(){
     vidGrabber.setup(1280, 720);
     vidRecorder->initRecording();
     bLaunchInQuicktime = true;
-
     
+    //pattern
+    {
+        ofVec2f patternBuf;
+        vector<ofVec2f> vv_patternBuf;
+        for(int i=0;i<30;i++){
+            patternBuf = ofVec2f(ofRandom(0.1,0.9),ofRandom(0.1,0.9));
+            vv_patternBuf.push_back(patternBuf);
+        }
+        vvv_pattern.push_back(vv_patternBuf);
+        vv_patternBuf.clear();
+        for(int i=0;i<230;i++){
+            float fBuf;
+            fBuf =ofRandom(0,1.0);
+            patternBuf = ofVec2f(ofRandom(0.1,0.9),fBuf*fBuf*0.8+0.1);
+            vv_patternBuf.push_back(patternBuf);
+        }
+        vvv_pattern.push_back(vv_patternBuf);
+        vv_patternBuf.clear();
+        for(int i=0;i<260;i++){
+            float fBuf;
+            fBuf =ofRandom(0.1,0.4);
+            float fBuf2;
+            fBuf2 =ofRandom(0,2*3.14);
+            patternBuf = ofVec2f( 0.5 + fBuf*sin(fBuf2),0.5+fBuf*cos(fBuf2));
+            vv_patternBuf.push_back(patternBuf);
+        }
+        vvv_pattern.push_back(vv_patternBuf);
+        vv_patternBuf.clear();
+    }
+    iconPhone.load("TonTon_style_iphone.png");
+    icon1.load("TonTon_style_full.png");
+    icon2.load("TonTon_style_gradient.png");
+    icon3.load("TonTon_style_round.png");
 }
 
 //--------------------------------------------------------------
@@ -275,11 +307,14 @@ void ofApp::update(){
                 camImg.setFromPixels(camPixels.getData(), BLACKMAGIC_W, BLACKMAGIC_H, OF_IMAGE_COLOR_ALPHA);
             }
         }else{
-            camMac.update();
+            //camMac.update();
+            vidGrabber.update();
             b_CamStart=true;
-            camPixels = camMac.getPixels();
-            camPixels.resize( BLACKMAGIC_W, BLACKMAGIC_H);
-            camImg.setFromPixels(camPixels.getData(), BLACKMAGIC_W, BLACKMAGIC_H, OF_IMAGE_COLOR);
+            camPixels = vidGrabber.getPixels();
+            //camPixels = camMac.getPixels();
+            camImg.setFromPixels(camPixels.getData(), WEBCAM_W, WEBCAM_H, OF_IMAGE_COLOR);
+            //camPixels.resize( BLACKMAGIC_W, BLACKMAGIC_H);
+            //camImg.setFromPixels(camPixels.getData(), BLACKMAGIC_W, BLACKMAGIC_H, OF_IMAGE_COLOR);
         }
     }
     
@@ -691,7 +726,7 @@ void ofApp::draw(){
     ofSetColor(255, 255, 255);
     ofEnableAlphaBlending();
     
-    ofBackground(0,0,0);
+    ofBackground(255,255,255);
     
     if(b_ChromeShow and b_CamStart){
         
@@ -699,6 +734,7 @@ void ofApp::draw(){
         ofPushMatrix();
         ofPushStyle();
 
+        camImg.draw(0, 0,WEBCAM_W/2,WEBCAM_H/2);
         if(vp_WorkNamePlaying.size()>0){
             vector<ofPolyline> gomi;
             gomi = vp_WorkNamePlaying[vp_WorkNamePlaying.size()-1].getOutline();
@@ -737,17 +773,21 @@ void ofApp::draw(){
             
             ofPushMatrix();
             ofPushStyle();
-            ofSetColor(255, 255,255,255);
+            iconPhone.draw(0, 0,-2,ofGetHeight()*iconPhone.getWidth() / iconPhone.getHeight(),ofGetHeight());
+            
+            ofSetColor(190, 192,194,255);
             ofDrawRectangle(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP,-1, CANVAS_SIZE, CANVAS_SIZE);
             ofSetColor(0, 0, 0,255);
             ofSetLineWidth(30);
             ofFill();
             //ofDrawRectangle(50, 100,10, 200, 200);
             for(int i = 0; i<vvv_MousePoint.size(); i++){
-                for(int j = 0; j<vvv_MousePoint[i].size()-1; j++){
-                    //ofDrawCircle(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],10, 3);
-                    ofDrawLine(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],
-                               vvv_MousePoint[i][j+1][0], vvv_MousePoint[i][j+1][1]);
+                if(vvv_MousePoint[i].size()>3){
+                    for(int j = 0; j<vvv_MousePoint[i].size()-1; j++){
+                        //ofDrawCircle(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],10, 3);
+                        ofDrawLine(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],
+                                   vvv_MousePoint[i][j+1][0], vvv_MousePoint[i][j+1][1]);
+                    }
                 }
             }
             ofPopStyle();
@@ -758,21 +798,60 @@ void ofApp::draw(){
                 canvas.allocate(CANVAS_SIZE, CANVAS_SIZE, OF_IMAGE_COLOR);
                 canvas.grabScreen(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP, CANVAS_SIZE,CANVAS_SIZE);
                 canvasColorImage.setFromPixels( canvas.getPixels());
-                canvasColorImage.blurGaussian(6);
+                canvasColorImageBuf.setFromPixels( canvas.getPixels());
+                canvasColorImage.blurGaussian(5);
                 canvasGrayImage = canvasColorImage;
             }
-            canvas.draw(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP+CANVAS_SIZE);
-            canvasGrayImage.draw(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP+CANVAS_SIZE*2, CANVAS_SIZE, CANVAS_SIZE);
+            if(0){
+            canvas.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE, CANVAS_MARGIN_TOP);
+            canvasGrayImage.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE*2, CANVAS_MARGIN_TOP, CANVAS_SIZE, CANVAS_SIZE);
+            }
+            icon1.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP,CANVAS_SIZE/3,CANVAS_SIZE/3);
+            icon2.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+            icon3.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*2/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+            ofPushStyle();
+            ofSetColor(255, 0,0);
+            ofNoFill();
+            ofDrawRectangle(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*(i_PatternMode)/3,3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+            ofPopStyle();
+            
+            if(canvasGrayImage.getWidth() > 0){
+                ofPixels roiBuf;
+                canvasColorImageBuf.setROI(5, 5, CANVAS_SIZE-10, CANVAS_SIZE-10);
+                roiBuf = canvasColorImageBuf.getRoiPixels();
+                canvasColorImageBuf2.setFromPixels(roiBuf);
+
+                ofPushMatrix();
+                ofPushStyle();
+                //ofTranslate(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP + CANVAS_SIZE*1.5 );
+                ofTranslate(99, 439);
+                //ofFill();
+                ofScale(1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE);
+                for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
+                    int x,y;
+                    x = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0]);
+                    y = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
+                    //cout << x<<":"<<y<<endl;
+                    canvasColorImageBuf2.draw(x-CANVAS_SIZE/2,y-CANVAS_SIZE/2,CANVAS_SIZE,CANVAS_SIZE);
+                    //canvasGrayImage.draw(x,y,CANVAS_SIZE,CANVAS_SIZE);
+                }
+                ofSetColor(190,192,194);
+
+                ofDrawRectangle(0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE);
+                ofPopStyle();
+                ofPopMatrix();
+            }
             
             ofPushStyle();
             ofSetColor(180, 180, 180);
             background.draw(-5*ofGetWidth(),-5*ofGetHeight(),-6100,11*ofGetWidth(), 11*ofGetHeight());
             ofPopStyle();
+ 
             ofRectangle viewport3D;
             viewport3D.x = ofGetWidth()/2;
             viewport3D.y = 0;
             viewport3D.width = ofGetWidth()/2;
-            viewport3D.height = ofGetHeight();
+            viewport3D.height = ofGetHeight()/2;
             if(b_RollingCam){
                 rollCam.begin(viewport3D);
             }else{
@@ -802,7 +881,6 @@ void ofApp::draw(){
                 }
                 
             }
-
             //model_base.drawFaces();
 
             
@@ -816,6 +894,91 @@ void ofApp::draw(){
                 v_Camera[i_Camera].end();
             }
             
+            
+            
+            
+            
+            if(0){
+            
+            viewport3D.x = ofGetWidth()/2;
+            viewport3D.y = ofGetHeight()/2;
+            viewport3D.width = ofGetWidth()/2;
+            viewport3D.height = ofGetHeight()/2;
+            if(b_RollingCam){
+                rollCam.begin(viewport3D);
+            }else{
+                v_Camera[i_Camera].begin();
+            }
+            areaLight.enable();
+            materialPlane.begin();
+            
+            ofSetColor(255, 255, 255);
+            
+            ofRotateZ(ofGetElapsedTimeMillis()/100.0);
+
+            //ofDrawBox(0,0,0,1000);
+            
+            
+            
+
+            if(canvasGrayImage.getWidth() > 0 and 0){
+                if(0){
+                ofDrawBox(0, 0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE, 10);
+                for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
+                    ofPushMatrix();
+                    ofTranslate(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0],SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
+                    ofScale(SUZUGAMI_BIT_SCALE, SUZUGAMI_BIT_SCALE);
+                    for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
+                        for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
+                            if(int(canvasChar[i+j*CANVAS_SIZE]) < 200){
+                                i_height = int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
+                                ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
+                            }
+                        }
+                    }
+                    ofPopMatrix();
+                }
+                }else{
+                    for(int i = 0; i< SUZUGAMI_SIZE; i++){
+                        for(int j = 0; j<SUZUGAMI_SIZE; j++){
+                            i_pattern[i][j]=100;
+                        }
+                    }
+                    /*
+                    for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
+                        int x,y;
+                        x = SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0];
+                        y = SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1];
+                        for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
+                            for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
+                                if(int(canvasChar[i+j*CANVAS_SIZE]) < 200){
+                                    i_height = int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
+                                    i_pattern[int(x+(i-CANVAS_SIZE/2)*SUZUGAMI_BIT_SCALE)][int(y+(j-CANVAS_SIZE/2)*SUZUGAMI_BIT_SCALE)]-=i_height;
+                                }
+                            }
+                        }
+                    }*/
+                    for(int i = 0; i< SUZUGAMI_SIZE; i++){
+                        for(int j = 0; j<SUZUGAMI_SIZE; j++){
+                            ofDrawBox((i-SUZUGAMI_SIZE/2),(j-SUZUGAMI_SIZE/2),i_pattern[i][j],1,1,i_pattern[i][j]*2);
+                        }
+                    }
+                }
+                
+            }
+
+            
+            materialPlane.end();
+            
+            
+            if(b_RollingCam){
+                rollCam.end();
+            }else{
+                v_Camera[i_Camera].end();
+            }
+
+            }
+                
             if(b_GuiDraw){
                 ofPushStyle();
                 ofPushMatrix();
@@ -830,6 +993,7 @@ void ofApp::draw(){
                 string info = "";
                 info += "Now Angle : "+ofToString(rollCam.posN)+"\n";
                 info += "Framerate : "+ofToString(ofGetFrameRate())+"\n";
+                info += "msg: "+guimsg+"\n";
                 ofDrawBitmapString(info, 10,100);
                 ofPopMatrix();
                 ofPopStyle();
@@ -880,9 +1044,6 @@ void ofApp::keyPressed(int key){
         }
     }
     switch(key){
-        case 'n':
-            vi_NewFaceQue.clear();
-            break;
         case 't':
             b_LogoShow = !b_LogoShow;
             break;
@@ -974,6 +1135,8 @@ void ofApp::keyPressed(int key){
             vidRecorder.close();
             break;
              */
+        case 'n':
+            i_PatternMode = (i_PatternMode+1)%PATTERN_NUM;
         case 'a':
             b_Auto = !b_Auto;
             if(b_Auto){
@@ -1059,6 +1222,8 @@ void ofApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
     b_MouseOn = true;
+    cout << x<<":"<< y << endl;
+    guimsg = ofToString(x)+":"+ofToString(y);
 }
 
 //--------------------------------------------------------------
