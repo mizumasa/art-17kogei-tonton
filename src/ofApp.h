@@ -292,7 +292,7 @@ public:
     ofImage icon2;
     ofImage icon3;
     string guimsg;
-    
+    bool b_HammerOrBit;
 };
 
 

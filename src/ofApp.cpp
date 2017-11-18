@@ -38,8 +38,8 @@ void ofApp::setup(){
     areaLight.enable();
     areaLight.setSpotlight(180,1);
     
-    areaLight.setAmbientColor(ofFloatColor(0.5,0.5,0.5));
-    areaLight.setDiffuseColor(ofFloatColor(0.5,0.5,0.5));
+    areaLight.setAmbientColor(ofFloatColor(0.7,0.7,0.7));
+    areaLight.setDiffuseColor(ofFloatColor(0.8,0.8,0.8));
     areaLight.setSpecularColor(ofFloatColor(0.5,0.5,0.5));
     areaLight.setPosition(RADIUS,-RADIUS,RADIUS);
     areaLight.lookAt(ofVec3f(0,0,0), ofVec3f(0,0,1));
@@ -79,7 +79,7 @@ void ofApp::setup(){
     }
     
     rollCam.setup();//rollCam's setup.
-    rollCam.setPos(0, 45, 0);
+    rollCam.setPos(0, 25, 0);
     rollCam.setCamSpeed(0.12);//rollCam's speed set;
     rollCam.setScale(2.3);
 
@@ -200,8 +200,8 @@ void ofApp::setup(){
     b_ChromeFriendThumbDraw=true;
     i_FriendIcon.load("friendicon.png");
     
-    materialPlane.setAmbientColor(ofFloatColor(0.5,0.5,0.5,1.0));
-    materialPlane.setDiffuseColor(ofFloatColor(0.5,0.5,0.5,1.0));
+    materialPlane.setAmbientColor(ofFloatColor(0.7,0.7,0.7,1.0));
+    materialPlane.setDiffuseColor(ofFloatColor(0.6,0.6,0.6,1.0));
     materialPlane.setSpecularColor(ofFloatColor(1.0,1.0,1.0,1.0));
     materialPlane.setShininess(100000);
 
@@ -211,7 +211,7 @@ void ofApp::setup(){
     
     b_MouseOn = false;
     b_GrabScreen = false;
-    model_base.loadModel("hammer_base.3ds");
+    model_base.loadModel("hammer_head_handle_pin.3ds");
     
     /*
     fileName = "movie";
@@ -266,6 +266,7 @@ void ofApp::setup(){
     icon1.load("TonTon_style_full.png");
     icon2.load("TonTon_style_gradient.png");
     icon3.load("TonTon_style_round.png");
+    b_HammerOrBit = false;
 }
 
 //--------------------------------------------------------------
@@ -848,10 +849,10 @@ void ofApp::draw(){
             ofPopStyle();
  
             ofRectangle viewport3D;
-            viewport3D.x = ofGetWidth()/2;
+            viewport3D.x = ofGetWidth()/3;
             viewport3D.y = 0;
-            viewport3D.width = ofGetWidth()/2;
-            viewport3D.height = ofGetHeight()/2;
+            viewport3D.width = ofGetWidth()*2/3;
+            viewport3D.height = ofGetHeight();
             if(b_RollingCam){
                 rollCam.begin(viewport3D);
             }else{
@@ -869,9 +870,25 @@ void ofApp::draw(){
             ofSetColor(255, 255, 255);
             int i_height = 0;
             
-            ofRotateZ(ofGetElapsedTimeMillis()/100.0);
+            if(!b_HammerOrBit)ofRotateZ(ofGetElapsedTimeMillis()/100.0);
             //ofRotateY(ofGetElapsedTimeMillis()/100.0);
+
+            uint64_t bufTime=0;
+            bufTime = ofGetElapsedTimeMillis();
+            if(b_HammerOrBit){
+                ofScale(1.7,1.7,1.7);
+            }
+
             if(canvasGrayImage.getWidth() > 0){
+                ofPushMatrix();
+                if(b_HammerOrBit){
+                    ofTranslate(0, 0,300);
+                    //ofRotateZ(bufTime/30.0-90);
+                    ofRotateZ(-90-70);
+                    ofRotateX(90);
+                    ofTranslate(0, 0,425+70*sin(bufTime/300.0));
+                    ofScale(0.1, 0.1,0.1);
+                }
                 for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
                     for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
                         i_height = BIT_BASE_HEIGHT;
@@ -879,10 +896,19 @@ void ofApp::draw(){
                         ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
                     }
                 }
+                ofPopMatrix();
                 
             }
-            //model_base.drawFaces();
-
+            if(b_HammerOrBit){
+                ofPushMatrix();
+                ofRotateZ(-70);
+                //ofRotateZ(bufTime/30.0);
+                ofTranslate(0,0,300);
+                ofRotateX(-90);
+                ofScale(3.0,3.0,3.0);
+                model_base.drawFaces();
+                ofPopMatrix();
+            }
             
             
             materialPlane.end();
@@ -1137,6 +1163,10 @@ void ofApp::keyPressed(int key){
              */
         case 'n':
             i_PatternMode = (i_PatternMode+1)%PATTERN_NUM;
+            break;
+        case 'h':
+            b_HammerOrBit = !b_HammerOrBit;
+            break;
         case 'a':
             b_Auto = !b_Auto;
             if(b_Auto){
@@ -1164,7 +1194,11 @@ void ofApp::keyPressed(int key){
 }
 
 void ofApp::changeSelectedHuman(bool _b_count){
-    rollCam.setRandomPos();
+    if(b_HammerOrBit){
+        rollCam.setPos(ofRandom(-20, 20), ofRandom(10, 30), 0);
+    }else{
+        rollCam.setRandomPos();
+    }
 }
 
 void ofApp::changeSelectedHuman2NewFace(){
