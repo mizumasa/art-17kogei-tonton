@@ -20,10 +20,6 @@
 
 #include "ofxAssimpModelLoader.h"
 
-
-#define CMD_MAIN_PY "/usr/local/bin/python ~/programming/of_v0.9.8_osx/apps/Art2017/BaPABar/bin/data/main.py"
-#define CMD_KILL_PY "/usr/local/bin/python ~/programming/of_v0.9.8_osx/apps/Art2017/BaPABar/bin/data/kill.py"
-
 #define CANVAS_MARGIN_TOP 303
 #define CANVAS_MARGIN_LEFT 163
 #define CANVAS_SIZE 120

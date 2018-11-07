@@ -24,7 +24,8 @@ void ofApp::setup(){
     avs.play(0, 1000, 1000);
 
     
-    ofSetWindowShape(1280, 800);
+    //ofSetWindowShape(1920, 1080);
+    ofSetWindowShape(960, 540);
     i_Camera = 2;
     i_test = 0;
     
@@ -83,7 +84,6 @@ void ofApp::setup(){
     rollCam.setCamSpeed(0.12);//rollCam's speed set;
     rollCam.setScale(2.3);
 
-    b_RollingCam = true;
     b_MovingCam = false;
     
     
@@ -141,22 +141,12 @@ void ofApp::setup(){
     background.load("background.png");
     b_CamStart = false;
     
-    if(0){
-    if(USE_BLACKMAGIC){
-        cam.setup(BLACKMAGIC_W, BLACKMAGIC_H, 30);
-    }else{
-        camMac.setDeviceID(0);
-        camMac.initGrabber(WEBCAM_W, WEBCAM_H);
-    }
-    }
-    
     i_FadingMode = 0;
     i_FadeBlackLevel = 0;
     
     timeline.setup();
     b_TimeLineIdle = false;
     
-    b_ChromeShow = false;
     b_LogoShow = false;
     i_Logo.load("logo.jpg");
     
@@ -175,19 +165,6 @@ void ofApp::setup(){
     b_SvgDraw = false;
     b_SvgPngDraw = false;
     i_SvgPng.load("new_face.png");
-    if(0){
-    int fsize = 5;
-    int fsize2 = 200;
-    ftest1.loadFont("Fonts/AxisStd-Medium.otf", fsize, true, true,0,fsize2);
-    ftest2.loadFont("Fonts/AxisStd-Regular.otf", fsize, true, true,0,fsize2);
-    ftest3.loadFont("Fonts/AxisStd-UltraLight.otf", fsize, true, true,0,fsize2);
-    ftest4.loadFont("Fonts/koburinaStdNW6.otf", fsize, true, true,0,fsize2);
-    ftest5.loadFont("Fonts/koburinaStdNW3.otf", fsize, true, true,0,fsize2);
-    ftest6.loadFont("Fonts/koburinaStdNW1.otf", fsize, true, true,0,fsize2);
-    ftest7.loadFont("Fonts/NotoSansCJKjp-Medium.otf", fsize, true, true,0,fsize2);
-    ftest8.loadFont("Fonts/NotoSansCJKjp-Regular.otf", fsize, true, true,0,fsize2);
-    ftest9.loadFont("Fonts/NotoSansCJKjp-Thin.otf", fsize, true, true,0,fsize2);
-    }
     i_TotalIntroduceCount = 0;
     
     for(int i=0;i<70;i++){
@@ -197,32 +174,17 @@ void ofApp::setup(){
     }
     
     lightImage.load("dot.png");
-    b_ChromeFriendThumbDraw=true;
-    i_FriendIcon.load("friendicon.png");
     
     materialPlane.setAmbientColor(ofFloatColor(0.7,0.7,0.7,1.0));
     materialPlane.setDiffuseColor(ofFloatColor(0.6,0.6,0.6,1.0));
     materialPlane.setSpecularColor(ofFloatColor(1.0,1.0,1.0,1.0));
     materialPlane.setShininess(100000);
 
-    //system("python --version");
-    //system(CMD_MAIN_PY); coundn't use python shell
     fadeIn();
     
     b_MouseOn = false;
     b_GrabScreen = false;
     model_base.loadModel("hammer_head_handle_pin.3ds");
-    
-    /*
-    fileName = "movie";
-    fileExt = ".mp4";
-    vidRecorder.setVideoCodec("mpeg4");
-    vidRecorder.setVideoBitrate("8000k");
-    vidRecorder.setAudioCodec("mp3");
-    vidRecorder.setAudioBitrate("192k");
-    ofAddListener(vidRecorder.outputFileCompleteEvent, this, &ofApp::recordingComplete);
-    soundStream.setup(this, 0, channels, sampleRate, 256, 4);
-     */
     
     vidRecorder = ofPtr<ofQTKitGrabber>( new ofQTKitGrabber() );
     vidGrabber.setGrabber(vidRecorder);
@@ -262,7 +224,9 @@ void ofApp::setup(){
         vvv_pattern.push_back(vv_patternBuf);
         vv_patternBuf.clear();
     }
-    iconPhone.load("TonTon_style_iphone.png");
+    //iconPhone.load("TonTon_style_iphone.png");
+    iconPhone.load("browser.png");
+
     icon1.load("TonTon_style_full.png");
     icon2.load("TonTon_style_gradient.png");
     icon3.load("TonTon_style_round.png");
@@ -298,28 +262,6 @@ void ofApp::update(){
     gpuBlur.blurOverlayGain = 255;
     
     rollCam.update();   //rollCam's rotate update.
-
-    if(b_ChromeShow){
-        if(USE_BLACKMAGIC){
-            if(cam.update()){
-                timer.tick();
-                b_CamStart=true;
-                camPixels=cam.getColorPixels();
-                camImg.setFromPixels(camPixels.getData(), BLACKMAGIC_W, BLACKMAGIC_H, OF_IMAGE_COLOR_ALPHA);
-            }
-        }else{
-            //camMac.update();
-            vidGrabber.update();
-            b_CamStart=true;
-            camPixels = vidGrabber.getPixels();
-            //camPixels = camMac.getPixels();
-            camImg.setFromPixels(camPixels.getData(), WEBCAM_W, WEBCAM_H, OF_IMAGE_COLOR);
-            //camPixels.resize( BLACKMAGIC_W, BLACKMAGIC_H);
-            //camImg.setFromPixels(camPixels.getData(), BLACKMAGIC_W, BLACKMAGIC_H, OF_IMAGE_COLOR);
-        }
-    }
-    
-    //updateTitleDraw();
     
     switch(i_FadingMode){
         case 0:
@@ -337,22 +279,6 @@ void ofApp::update(){
             }
             break;
     }
-    
-    /*
-    if(bRecordingPre and bRecording){
-        bool success = vidRecorder.addFrame(camImg);
-        if (!success) {
-            ofLogWarning("This frame was not added!");
-        }
-    }
-    bRecordingPre = bRecording;
-
-    if (vidRecorder.hasVideoError()) {
-        ofLogWarning("The video recorder failed to write some frames!");
-    }
-    if (vidRecorder.hasAudioError()) {
-        ofLogWarning("The video recorder failed to write some audio samples!");
-    }*/
 
     if(recordedVideoPlayback.isLoaded()){
         recordedVideoPlayback.update();
@@ -375,135 +301,7 @@ void ofApp::dumpOSC(ofxOscMessage m) {
     cout << msg_string << endl;
 }
 
-void ofApp::updateFriendship(){
-    for(int i = 0; i<v_ObjectHuman.size(); i++){
-        //cout << "about" << v_ObjectHuman[i].s_faceId <<endl;
-        v_ObjectHuman[i].i_Id = i;
-        v_ObjectHuman[i].vi_FriendsId.clear();
-    }
-    for(int i = 0; i<v_ObjectHuman.size(); i++){
-        for(int j = 0; j<v_ObjectHuman[i].vs_FriendsFaceId.size(); j++){
-            for(int k = 0; k<v_ObjectHuman.size(); k++){
-                if(v_ObjectHuman[i].vs_FriendsFaceId[j] == v_ObjectHuman[k].s_faceId){
-                    if(! inVector(v_ObjectHuman[k].vi_FriendsId,v_ObjectHuman[i].i_Id)){
-                        v_ObjectHuman[k].vi_FriendsId.push_back(v_ObjectHuman[i].i_Id);
-                        v_ObjectHuman[i].vi_FriendsId.push_back(v_ObjectHuman[k].i_Id);
-                    }
-                }
-            }
-        }
-    }
-    for(int i = 0; i<v_ObjectHuman.size(); i++){
-        //cout << v_ObjectHuman[i].i_Id <<":"<< v_ObjectHuman[i].s_faceId <<endl;
-        for(int j = 0; j<v_ObjectHuman[i].vi_FriendsId.size(); j++){
-            int friendId;
-            friendId = v_ObjectHuman[i].vi_FriendsId[j];
-            //cout << ">>" << v_ObjectHuman[friendId].i_Id <<":"<< v_ObjectHuman[friendId].s_faceId <<endl;
-        }
-    }
-}
 
-
-void ofApp::updateTitleDraw(){
-    if(i_TitleDrawCount > 0){
-        i_TitleDrawCount +=1;
-        if(b_ComingIntroduceMode){
-            i_ComingLogo +=1;
-            if(i_ComingLogo > 0 and i_ComingLogo < 30){
-                i_TitleDrawCount -= 1;
-            }
-            if(i_ComingLogo==80){
-                //avsName = "";
-            }
-            if(i_ComingLogo == 10){
-                svgStep = 0;
-                //avsName.setup("NEW FACE !!!");
-                //avsName.play(0, 100, 100);
-                b_SvgDraw = true;
-                
-            }
-            if(i_ComingLogo >= 10 && i_ComingLogo <=29){
-                svgStep += 0.05;
-            }
-            if(i_ComingLogo == 75){
-                b_SvgDraw = false;
-            }
-            if(i_ComingLogo >= 30 && i_ComingLogo <=62){
-                b_SvgPngDraw = ((i_ComingLogo % 2) == 0);
-            }
-            if(i_ComingLogo >= 75){
-                b_SvgPngDraw = false;
-            }
-        }
-        if(i_TitleDrawCount > TITLE_DRAW_VANISH){
-            i_TitleDrawCount = 0;
-            i_ComingLogo = 0;
-        }
-        switch(i_TitleDrawCount){
-            case 2:
-                avsName="";
-                avsJob="";
-                avsGroup="";
-                avsWork1="";
-                avsWork2="";
-                avsWork3="";
-                avsWorkUrl1="";
-                avsWorkUrl2="";
-                avsWorkUrl3="";
-                i_TotalIntroduceCount+=1;
-                v_ObjectHuman[i_SelectedHuman].i_IntroducedCount+=1;
-                v_ObjectHuman[i_SelectedHuman].t_LastIntroducedTime=ofGetElapsedTimeMillis();
-                //v_ObjectHuman[i_SelectedHuman].b_NewFaceIntroductionFinished=true;
-            case 40:
-                cout << "AVS set" << v_ObjectHuman[i_SelectedHuman].getName() << ":" << v_ObjectHuman[i_SelectedHuman].getJob() << ":" << v_ObjectHuman[i_SelectedHuman].getGroup() << endl;
-                avsJob.setup(limitStr(v_ObjectHuman[i_SelectedHuman].getJob()));
-                avsName.setup(limitStr(v_ObjectHuman[i_SelectedHuman].getName()));
-                avsGroup.setup(limitStr(v_ObjectHuman[i_SelectedHuman].getGroup()));
-                if(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl.size()>0){
-                    avsWork1.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksName[0]));
-                    avsWorkUrl1.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl[0]));
-                }
-                if(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl.size()>1){
-                    avsWork2.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksName[1]));
-                    avsWorkUrl2.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl[1]));
-                }
-                if(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl.size()>2){
-                    avsWork3.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksName[2]));
-                    avsWorkUrl3.setup(limitStr(v_ObjectHuman[i_SelectedHuman].vs_WorksUrl[2]));
-                }
-                avsName.play(0, 1000, 1000);
-                break;
-            case 50:
-                avsGroup.play(0, 1000, 1000);
-                break;
-            case 60:
-                avsJob.play(0, 1000, 1000);
-                break;
-            case 70:
-                if(!b_ComingIntroduceMode)avsWork1.play(0, 900, 900);
-                break;
-            case 75:
-                if(!b_ComingIntroduceMode)avsWorkUrl1.play(0, 900, 900);
-                break;
-            case 80:
-                if(!b_ComingIntroduceMode)avsWork2.play(0, 800, 800);
-                break;
-            case 85:
-                if(!b_ComingIntroduceMode)avsWorkUrl2.play(0, 800, 800);
-                break;
-            case 90:
-                if(!b_ComingIntroduceMode)avsWork3.play(0, 700, 700);
-                break;
-            case 95:
-                if(!b_ComingIntroduceMode)avsWorkUrl3.play(0, 700, 700);
-                break;
-        }
-    }else{
-        i_ComingLogo = 0;
-        b_SvgDraw = false;
-        b_SvgPngDraw = false;
-    }
-}
 
 void ofApp::titleDraw(){
     ofPushMatrix();
@@ -729,317 +527,179 @@ void ofApp::draw(){
     
     ofBackground(255,255,255);
     
-    if(b_ChromeShow and b_CamStart){
-        
-        
-        ofPushMatrix();
-        ofPushStyle();
-
-        camImg.draw(0, 0,WEBCAM_W/2,WEBCAM_H/2);
-        if(vp_WorkNamePlaying.size()>0){
-            vector<ofPolyline> gomi;
-            gomi = vp_WorkNamePlaying[vp_WorkNamePlaying.size()-1].getOutline();
-            if(gomi.size()>0){
-                if(gomi[gomi.size()-1].size()){
-                    i_WorkNamePlayingWidth = gomi[gomi.size()-1][gomi[gomi.size()-1].size()-1].x;
-                }
+    ofPushMatrix();
+    ofPushStyle();
+    ofDrawRectangle(0,0,-3,ofGetWidth()/2,ofGetHeight());
+    int drawPosY = 0;
+    drawPosY = (ofGetHeight() - (ofGetWidth()/2*iconPhone.getHeight() / iconPhone.getWidth()))/2;
+    iconPhone.draw(0, drawPosY,-2,ofGetWidth()/2,(ofGetWidth()/2*iconPhone.getHeight() / iconPhone.getWidth()));
+    
+    ofSetColor(190, 192,194,255);
+    ofDrawRectangle(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP,-1, CANVAS_SIZE, CANVAS_SIZE);
+    ofSetColor(0, 0, 0,255);
+    ofSetLineWidth(30);
+    ofFill();
+    //ofDrawRectangle(50, 100,10, 200, 200);
+    for(int i = 0; i<vvv_MousePoint.size(); i++){
+        if(vvv_MousePoint[i].size()>3){
+            for(int j = 0; j<vvv_MousePoint[i].size()-1; j++){
+                //ofDrawCircle(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],10, 3);
+                ofDrawLine(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],
+                           vvv_MousePoint[i][j+1][0], vvv_MousePoint[i][j+1][1]);
             }
-            ofDrawRectRounded(-100, -60,-1, 140+i_WorkNamePlayingWidth*2, 60,10);
-            ofScale(1.5, 1.5);
-            ofSetColor(255,255,255);
-            vector<ofPath>::iterator iter;
-            iter = vp_WorkNamePlaying.begin();
-            ofTranslate(20,-15);
-            for (; iter != vp_WorkNamePlaying.end(); ++iter){
-                (*iter).setStrokeWidth(0);
-                (*iter).setPolyWindingMode(OF_POLY_WINDING_NONZERO);
-                (*iter).draw(0,0);
-            }
-        }
-        ofPopStyle();
-        ofPopMatrix();
-
-        ofPushMatrix();
-        ofPushStyle();
-        ofTranslate(ofGetWidth()-330, 0);
-        ofSetColor(0, 0, 0,255);
-        ofFill();
-        ofDrawRectRounded(-70, -60,-1, 420, 120,10);
-        ofPopStyle();
-        ofPopMatrix();
-    }else{
-        if(b_LogoShow){
-            drawLogo();
-        }else{
-            
-            
-            ofPushMatrix();
-            ofPushStyle();
-            iconPhone.draw(0, 0,-2,ofGetHeight()*iconPhone.getWidth() / iconPhone.getHeight(),ofGetHeight());
-            
-            ofSetColor(190, 192,194,255);
-            ofDrawRectangle(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP,-1, CANVAS_SIZE, CANVAS_SIZE);
-            ofSetColor(0, 0, 0,255);
-            ofSetLineWidth(30);
-            ofFill();
-            //ofDrawRectangle(50, 100,10, 200, 200);
-            for(int i = 0; i<vvv_MousePoint.size(); i++){
-                if(vvv_MousePoint[i].size()>3){
-                    for(int j = 0; j<vvv_MousePoint[i].size()-1; j++){
-                        //ofDrawCircle(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],10, 3);
-                        ofDrawLine(vvv_MousePoint[i][j][0], vvv_MousePoint[i][j][1],
-                                   vvv_MousePoint[i][j+1][0], vvv_MousePoint[i][j+1][1]);
-                    }
-                }
-            }
-            ofPopStyle();
-            ofPopMatrix();
-
-            if(b_GrabScreen){
-                b_GrabScreen = false;
-                canvas.allocate(CANVAS_SIZE, CANVAS_SIZE, OF_IMAGE_COLOR);
-                canvas.grabScreen(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP, CANVAS_SIZE,CANVAS_SIZE);
-                canvasColorImage.setFromPixels( canvas.getPixels());
-                canvasColorImageBuf.setFromPixels( canvas.getPixels());
-                canvasColorImage.blurGaussian(5);
-                canvasGrayImage = canvasColorImage;
-            }
-            if(0){
-            canvas.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE, CANVAS_MARGIN_TOP);
-            canvasGrayImage.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE*2, CANVAS_MARGIN_TOP, CANVAS_SIZE, CANVAS_SIZE);
-            }
-            icon1.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP,CANVAS_SIZE/3,CANVAS_SIZE/3);
-            icon2.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-            icon3.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*2/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-            ofPushStyle();
-            ofSetColor(255, 0,0);
-            ofNoFill();
-            ofDrawRectangle(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*(i_PatternMode)/3,3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-            ofPopStyle();
-            
-            if(canvasGrayImage.getWidth() > 0){
-                ofPixels roiBuf;
-                canvasColorImageBuf.setROI(5, 5, CANVAS_SIZE-10, CANVAS_SIZE-10);
-                roiBuf = canvasColorImageBuf.getRoiPixels();
-                canvasColorImageBuf2.setFromPixels(roiBuf);
-
-                ofPushMatrix();
-                ofPushStyle();
-                //ofTranslate(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP + CANVAS_SIZE*1.5 );
-                ofTranslate(99, 439);
-                //ofFill();
-                ofScale(1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE);
-                for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
-                    int x,y;
-                    x = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0]);
-                    y = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
-                    //cout << x<<":"<<y<<endl;
-                    canvasColorImageBuf2.draw(x-CANVAS_SIZE/2,y-CANVAS_SIZE/2,CANVAS_SIZE,CANVAS_SIZE);
-                    //canvasGrayImage.draw(x,y,CANVAS_SIZE,CANVAS_SIZE);
-                }
-                ofSetColor(190,192,194);
-
-                ofDrawRectangle(0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE);
-                ofPopStyle();
-                ofPopMatrix();
-            }
-            
-            ofPushStyle();
-            ofSetColor(180, 180, 180);
-            background.draw(-5*ofGetWidth(),-5*ofGetHeight(),-6100,11*ofGetWidth(), 11*ofGetHeight());
-            ofPopStyle();
- 
-            ofRectangle viewport3D;
-            viewport3D.x = ofGetWidth()/3;
-            viewport3D.y = 0;
-            viewport3D.width = ofGetWidth()*2/3;
-            viewport3D.height = ofGetHeight();
-            if(b_RollingCam){
-                rollCam.begin(viewport3D);
-            }else{
-                v_Camera[i_Camera].begin();
-            }
-            //background.draw(ofGetWidth(), ofGetHeight());
-            areaLight.enable();
-            materialPlane.begin();
-            ofPixels canvasPixels;
-            canvasPixels = canvasGrayImage.getPixels();
-            unsigned char* canvasChar;
-            canvasChar = canvasPixels.getData();
-
-            
-            ofSetColor(255, 255, 255);
-            int i_height = 0;
-            
-            if(!b_HammerOrBit)ofRotateZ(ofGetElapsedTimeMillis()/100.0);
-            //ofRotateY(ofGetElapsedTimeMillis()/100.0);
-
-            uint64_t bufTime=0;
-            bufTime = ofGetElapsedTimeMillis();
-            if(b_HammerOrBit){
-                ofScale(1.7,1.7,1.7);
-            }
-
-            if(canvasGrayImage.getWidth() > 0){
-                ofPushMatrix();
-                if(b_HammerOrBit){
-                    ofTranslate(0, 0,300);
-                    //ofRotateZ(bufTime/30.0-90);
-                    ofRotateZ(-90-70);
-                    ofRotateX(90);
-                    ofTranslate(0, 0,425+70*sin(bufTime/300.0));
-                    ofScale(0.1, 0.1,0.1);
-                }
-                for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
-                    for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
-                        i_height = BIT_BASE_HEIGHT;
-                        i_height += int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
-                        ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
-                    }
-                }
-                ofPopMatrix();
-                
-            }
-            if(b_HammerOrBit){
-                ofPushMatrix();
-                ofRotateZ(-70);
-                //ofRotateZ(bufTime/30.0);
-                ofTranslate(0,0,300);
-                ofRotateX(-90);
-                ofScale(3.0,3.0,3.0);
-                model_base.drawFaces();
-                ofPopMatrix();
-            }
-            
-            
-            materialPlane.end();
-
-            
-            if(b_RollingCam){
-                rollCam.end();
-            }else{
-                v_Camera[i_Camera].end();
-            }
-            
-            
-            
-            
-            
-            if(0){
-            
-            viewport3D.x = ofGetWidth()/2;
-            viewport3D.y = ofGetHeight()/2;
-            viewport3D.width = ofGetWidth()/2;
-            viewport3D.height = ofGetHeight()/2;
-            if(b_RollingCam){
-                rollCam.begin(viewport3D);
-            }else{
-                v_Camera[i_Camera].begin();
-            }
-            areaLight.enable();
-            materialPlane.begin();
-            
-            ofSetColor(255, 255, 255);
-            
-            ofRotateZ(ofGetElapsedTimeMillis()/100.0);
-
-            //ofDrawBox(0,0,0,1000);
-            
-            
-            
-
-            if(canvasGrayImage.getWidth() > 0 and 0){
-                if(0){
-                ofDrawBox(0, 0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE, 10);
-                for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
-                    ofPushMatrix();
-                    ofTranslate(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0],SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
-                    ofScale(SUZUGAMI_BIT_SCALE, SUZUGAMI_BIT_SCALE);
-                    for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
-                        for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
-                            if(int(canvasChar[i+j*CANVAS_SIZE]) < 200){
-                                i_height = int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
-                                ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
-                            }
-                        }
-                    }
-                    ofPopMatrix();
-                }
-                }else{
-                    for(int i = 0; i< SUZUGAMI_SIZE; i++){
-                        for(int j = 0; j<SUZUGAMI_SIZE; j++){
-                            i_pattern[i][j]=100;
-                        }
-                    }
-                    /*
-                    for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
-                        int x,y;
-                        x = SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0];
-                        y = SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1];
-                        for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
-                            for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
-                                if(int(canvasChar[i+j*CANVAS_SIZE]) < 200){
-                                    i_height = int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
-                                    i_pattern[int(x+(i-CANVAS_SIZE/2)*SUZUGAMI_BIT_SCALE)][int(y+(j-CANVAS_SIZE/2)*SUZUGAMI_BIT_SCALE)]-=i_height;
-                                }
-                            }
-                        }
-                    }*/
-                    for(int i = 0; i< SUZUGAMI_SIZE; i++){
-                        for(int j = 0; j<SUZUGAMI_SIZE; j++){
-                            ofDrawBox((i-SUZUGAMI_SIZE/2),(j-SUZUGAMI_SIZE/2),i_pattern[i][j],1,1,i_pattern[i][j]*2);
-                        }
-                    }
-                }
-                
-            }
-
-            
-            materialPlane.end();
-            
-            
-            if(b_RollingCam){
-                rollCam.end();
-            }else{
-                v_Camera[i_Camera].end();
-            }
-
-            }
-                
-            if(b_GuiDraw){
-                ofPushStyle();
-                ofPushMatrix();
-                gui.draw();
-                ofPopMatrix();
-                ofPopStyle();
-
-                ofPushStyle();
-                ofPushMatrix();
-                ofSetColor(255,0,0);
-                ofDisableLighting();
-                string info = "";
-                info += "Now Angle : "+ofToString(rollCam.posN)+"\n";
-                info += "Framerate : "+ofToString(ofGetFrameRate())+"\n";
-                info += "msg: "+guimsg+"\n";
-                ofDrawBitmapString(info, 10,100);
-                ofPopMatrix();
-                ofPopStyle();
-            }
-
-            
-            ofPushStyle();
-            int zoomGrayShade = 0;
-            zoomGrayShade = (255 - (rollCam.scaleN - 1.2)*300);
-            if(zoomGrayShade<0)zoomGrayShade=0;
-            if(zoomGrayShade>255)zoomGrayShade=255;
-            ofSetColor(0, 0, 0, zoomGrayShade);
-            ofFill();
-            ofDrawRectangle(-100,-100,500, ofGetWidth()+200, ofGetHeight()+200);
-            ofPopStyle();
-            titleDraw();
         }
     }
+    ofPopStyle();
+    ofPopMatrix();
+
+    if(b_GrabScreen){
+        b_GrabScreen = false;
+        canvas.allocate(CANVAS_SIZE, CANVAS_SIZE, OF_IMAGE_COLOR);
+        canvas.grabScreen(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP, CANVAS_SIZE,CANVAS_SIZE);
+        canvasColorImage.setFromPixels( canvas.getPixels());
+        canvasColorImageBuf.setFromPixels( canvas.getPixels());
+        canvasColorImage.blurGaussian(5);
+        canvasGrayImage = canvasColorImage;
+    }
+    icon1.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP,CANVAS_SIZE/3,CANVAS_SIZE/3);
+    icon2.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+    icon3.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*2/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+    ofPushStyle();
+    ofSetColor(255, 0,0);
+    ofNoFill();
+    ofDrawRectangle(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*(i_PatternMode)/3,3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+    ofPopStyle();
     
+    if(canvasGrayImage.getWidth() > 0){
+        ofPixels roiBuf;
+        canvasColorImageBuf.setROI(5, 5, CANVAS_SIZE-10, CANVAS_SIZE-10);
+        roiBuf = canvasColorImageBuf.getRoiPixels();
+        canvasColorImageBuf2.setFromPixels(roiBuf);
+
+        ofPushMatrix();
+        ofPushStyle();
+        //ofTranslate(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP + CANVAS_SIZE*1.5 );
+        ofTranslate(99, 439);
+        //ofFill();
+        ofScale(1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE);
+        for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
+            int x,y;
+            x = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0]);
+            y = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
+            //cout << x<<":"<<y<<endl;
+            canvasColorImageBuf2.draw(x-CANVAS_SIZE/2,y-CANVAS_SIZE/2,CANVAS_SIZE,CANVAS_SIZE);
+            //canvasGrayImage.draw(x,y,CANVAS_SIZE,CANVAS_SIZE);
+        }
+        ofSetColor(190,192,194);
+
+        ofDrawRectangle(0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE);
+        ofPopStyle();
+        ofPopMatrix();
+    }
+    
+    ofPushStyle();
+    ofSetColor(180, 180, 180);
+    background.draw(-5*ofGetWidth(),-5*ofGetHeight(),-6100,11*ofGetWidth(), 11*ofGetHeight());
+    ofPopStyle();
+
+    ofRectangle viewport3D;
+    viewport3D.x = ofGetWidth()/2;
+    viewport3D.y = 0;
+    viewport3D.width = ofGetWidth()/2;
+    viewport3D.height = ofGetHeight();
+    rollCam.begin(viewport3D);
+    //background.draw(ofGetWidth(), ofGetHeight());
+    areaLight.enable();
+    materialPlane.begin();
+    ofPixels canvasPixels;
+    canvasPixels = canvasGrayImage.getPixels();
+    unsigned char* canvasChar;
+    canvasChar = canvasPixels.getData();
+
+    
+    ofSetColor(255, 255, 255);
+    int i_height = 0;
+    
+    if(!b_HammerOrBit)ofRotateZ(ofGetElapsedTimeMillis()/100.0);
+    //ofRotateY(ofGetElapsedTimeMillis()/100.0);
+
+    uint64_t bufTime=0;
+    bufTime = ofGetElapsedTimeMillis();
+    if(b_HammerOrBit){
+        ofScale(1.7,1.7,1.7);
+    }
+
+    if(canvasGrayImage.getWidth() > 0){
+        ofPushMatrix();
+        if(b_HammerOrBit){
+            ofTranslate(0, 0,300);
+            //ofRotateZ(bufTime/30.0-90);
+            ofRotateZ(-90-70);
+            ofRotateX(90);
+            ofTranslate(0, 0,425+70*sin(bufTime/300.0));
+            ofScale(0.1, 0.1,0.1);
+        }
+        for(int i = BIT_MARGIN; i< (CANVAS_SIZE - BIT_MARGIN); i++){
+            for(int j = BIT_MARGIN; j<(CANVAS_SIZE - BIT_MARGIN); j++){
+                i_height = BIT_BASE_HEIGHT;
+                i_height += int(BIT_HEIGHT * (255 - int(canvasChar[i+j*CANVAS_SIZE])) / 255.0);
+                ofDrawBox((i-CANVAS_SIZE/2)*BIT_SIZE,(j-CANVAS_SIZE/2)*BIT_SIZE,i_height,BIT_SIZE,BIT_SIZE,i_height*2);
+            }
+        }
+        ofPopMatrix();
+        
+    }
+    if(b_HammerOrBit){
+        ofPushMatrix();
+        ofRotateZ(-70);
+        //ofRotateZ(bufTime/30.0);
+        ofTranslate(0,0,300);
+        ofRotateX(-90);
+        ofScale(3.0,3.0,3.0);
+        model_base.drawFaces();
+        ofPopMatrix();
+    }
+    
+    
+    materialPlane.end();
+
+    
+    rollCam.end();
+    
+    
+    
+    
+    if(b_GuiDraw){
+        ofPushStyle();
+        ofPushMatrix();
+        gui.draw();
+        ofPopMatrix();
+        ofPopStyle();
+
+        ofPushStyle();
+        ofPushMatrix();
+        ofSetColor(255,0,0);
+        ofDisableLighting();
+        string info = "";
+        info += "Now Angle : "+ofToString(rollCam.posN)+"\n";
+        info += "Framerate : "+ofToString(ofGetFrameRate())+"\n";
+        info += "msg: "+guimsg+"\n";
+        ofDrawBitmapString(info, 10,100);
+        ofPopMatrix();
+        ofPopStyle();
+    }
+
+    
+    ofPushStyle();
+    int zoomGrayShade = 0;
+    zoomGrayShade = (255 - (rollCam.scaleN - 1.2)*300);
+    if(zoomGrayShade<0)zoomGrayShade=0;
+    if(zoomGrayShade>255)zoomGrayShade=255;
+    ofSetColor(0, 0, 0, zoomGrayShade);
+    ofFill();
+    ofDrawRectangle(-100,-100,500, ofGetWidth()+200, ofGetHeight()+200);
+    ofPopStyle();
+    //titleDraw();
     
     ofPushStyle();
     ofSetColor(0, 0, 0, i_FadeBlackLevel);
@@ -1084,9 +744,6 @@ void ofApp::keyPressed(int key){
         case 'g':
             b_GuiDraw = !b_GuiDraw;
             break;
-        case 'u':
-            updateFriendship();
-            break;
         case OF_KEY_LEFT:
             break;
         case OF_KEY_RIGHT:
@@ -1101,24 +758,7 @@ void ofApp::keyPressed(int key){
             i_test -= 1;
             break;
         case 'c':
-            if(b_RollingCam){
-                changeSelectedHuman();
-            }else{
-                i_Camera = (i_Camera +1)%3;
-                for(int i = 0;i<v_Camera.size();i++){
-                    if(i_Camera == i){
-                        v_Camera[i].enableMouseInput();
-                    }else{
-                        v_Camera[i].disableMouseInput();
-                    }
-                }
-            }
-            break;
-        case 'b':
-            b_ChromeShow = !b_ChromeShow;
-            break;
-        case 'v':
-            b_RollingCam = !b_RollingCam;
+            changeSelectedHuman();
             break;
         case 'm':
             b_MovingCam = !b_MovingCam;
@@ -1140,28 +780,6 @@ void ofApp::keyPressed(int key){
             rollCam.setScale(1.6);
             i_TitleDrawCount = 1;
             break;
-        case 'r':
-            /*
-            bRecording = !bRecording;
-            if(bRecording && !vidRecorder.isInitialized()) {
-                s_SaveName = fileName+ofGetTimestampString()+fileExt;
-                vidRecorder.setup(s_SaveName, BLACKMAGIC_W, BLACKMAGIC_H, 30, sampleRate, channels);
-                vidRecorder.start();
-            }
-            else if(!bRecording && vidRecorder.isInitialized()) {
-                vidRecorder.setPaused(true);
-            }
-            else if(bRecording && vidRecorder.isInitialized()) {
-                vidRecorder.setPaused(false);
-            }*/
-            
-            break;
-            /*
-        case 'e':
-            bRecording = false;
-            vidRecorder.close();
-            break;
-             */
         case 'n':
             i_PatternMode = (i_PatternMode+1)%PATTERN_NUM;
             break;
