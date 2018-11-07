@@ -772,6 +772,7 @@ void ofApp::draw(){
             drawLogo();
         }else{
             
+            
             ofPushMatrix();
             ofPushStyle();
             iconPhone.draw(0, 0,-2,ofGetHeight()*iconPhone.getWidth() / iconPhone.getHeight(),ofGetHeight());
