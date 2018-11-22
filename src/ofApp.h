@@ -20,9 +20,13 @@
 
 #include "ofxAssimpModelLoader.h"
 
-#define CANVAS_MARGIN_TOP 303
+/*#define CANVAS_MARGIN_TOP 303
 #define CANVAS_MARGIN_LEFT 163
-#define CANVAS_SIZE 120
+#define CANVAS_SIZE 120*/
+
+#define CANVAS_MARGIN_TOP 304
+#define CANVAS_MARGIN_LEFT 173
+#define CANVAS_SIZE 156
 
 //#define CANVAS_MARGIN_TOP 382
 //#define CANVAS_MARGIN_LEFT 75
@@ -250,6 +254,8 @@ public:
     
     ofxAssimpModelLoader model_base;
 
+    
+    int i_InitializeCount;
 /*
     ofxVideoRecorder    vidRecorder;
     ofSoundStream       soundStream;

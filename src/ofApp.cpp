@@ -24,8 +24,8 @@ void ofApp::setup(){
     avs.play(0, 1000, 1000);
 
     
-    //ofSetWindowShape(1920, 1080);
-    ofSetWindowShape(960, 540);
+    ofSetWindowShape(1920, 1080);
+    //ofSetWindowShape(960, 540);
     i_Camera = 2;
     i_test = 0;
     
@@ -231,6 +231,8 @@ void ofApp::setup(){
     icon2.load("TonTon_style_gradient.png");
     icon3.load("TonTon_style_round.png");
     b_HammerOrBit = false;
+    
+    i_InitializeCount = 0;
 }
 
 //--------------------------------------------------------------
@@ -284,6 +286,11 @@ void ofApp::update(){
         recordedVideoPlayback.update();
     }
 
+    i_InitializeCount+=1;
+    if(i_InitializeCount > 60 * 5){
+        vv_MousePoint.clear();
+        vvv_MousePoint.clear();
+    }
 }
 
 void ofApp::dumpOSC(ofxOscMessage m) {
@@ -549,6 +556,13 @@ void ofApp::draw(){
             }
         }
     }
+    if(vv_MousePoint.size() > 0){
+        for(int i = 0; i<vv_MousePoint.size()-1; i++){
+            ofDrawLine(vv_MousePoint[i][0], vv_MousePoint[i][1],
+                       vv_MousePoint[i+1][0], vv_MousePoint[i+1][1]);
+        }
+    }
+
     ofPopStyle();
     ofPopMatrix();
 
@@ -561,16 +575,21 @@ void ofApp::draw(){
         canvasColorImage.blurGaussian(5);
         canvasGrayImage = canvasColorImage;
     }
-    icon1.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP,CANVAS_SIZE/3,CANVAS_SIZE/3);
-    icon2.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-    icon3.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*2/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-    ofPushStyle();
-    ofSetColor(255, 0,0);
-    ofNoFill();
-    ofDrawRectangle(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*(i_PatternMode)/3,3,CANVAS_SIZE/3,CANVAS_SIZE/3);
-    ofPopStyle();
+    
+    if(0){
+        icon1.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP,CANVAS_SIZE/3,CANVAS_SIZE/3);
+        icon2.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+        icon3.draw(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*2/3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+
+        ofPushStyle();
+        ofSetColor(255, 0,0);
+        ofNoFill();
+        ofDrawRectangle(CANVAS_MARGIN_LEFT+CANVAS_SIZE+3, CANVAS_MARGIN_TOP+CANVAS_SIZE*(i_PatternMode)/3,3,CANVAS_SIZE/3,CANVAS_SIZE/3);
+        ofPopStyle();
+    }
     
     if(canvasGrayImage.getWidth() > 0){
+        float ASPECT_RATIO = 1.5;
         ofPixels roiBuf;
         canvasColorImageBuf.setROI(5, 5, CANVAS_SIZE-10, CANVAS_SIZE-10);
         roiBuf = canvasColorImageBuf.getRoiPixels();
@@ -579,20 +598,23 @@ void ofApp::draw(){
         ofPushMatrix();
         ofPushStyle();
         //ofTranslate(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP + CANVAS_SIZE*1.5 );
-        ofTranslate(99, 439);
+        ofTranslate(397, 251);
         //ofFill();
-        ofScale(1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE,1.9*CANVAS_SIZE/SUZUGAMI_SIZE);
+        float scale_offset = 1.45;
+        ofScale(scale_offset*CANVAS_SIZE/SUZUGAMI_SIZE,
+                scale_offset*CANVAS_SIZE/SUZUGAMI_SIZE,
+                scale_offset*CANVAS_SIZE/SUZUGAMI_SIZE);
         for(int k =0;k < vvv_pattern[i_PatternMode].size();k++){
             int x,y;
             x = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][0]);
-            y = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]);
+            y = int(SUZUGAMI_SIZE*vvv_pattern[i_PatternMode][k][1]*ASPECT_RATIO);
             //cout << x<<":"<<y<<endl;
             canvasColorImageBuf2.draw(x-CANVAS_SIZE/2,y-CANVAS_SIZE/2,CANVAS_SIZE,CANVAS_SIZE);
             //canvasGrayImage.draw(x,y,CANVAS_SIZE,CANVAS_SIZE);
         }
         ofSetColor(190,192,194);
 
-        ofDrawRectangle(0, 0, SUZUGAMI_SIZE, SUZUGAMI_SIZE);
+        //ofDrawRectangle(0, 0, SUZUGAMI_SIZE, int(SUZUGAMI_SIZE * ASPECT_RATIO));
         ofPopStyle();
         ofPopMatrix();
     }
@@ -868,15 +890,22 @@ void ofApp::mouseMoved(int x, int y ){
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
     if(b_MouseOn){
-        vv_MousePoint.push_back(ofVec2f(x,y));
+        if( (x >= CANVAS_MARGIN_LEFT) and (y >= CANVAS_MARGIN_TOP ) and
+           (x <= CANVAS_MARGIN_LEFT + CANVAS_SIZE) and (y <= CANVAS_MARGIN_TOP + CANVAS_SIZE) ){
+            vv_MousePoint.push_back(ofVec2f(x,y));
+        }
     }
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    b_MouseOn = true;
     cout << x<<":"<< y << endl;
-    guimsg = ofToString(x)+":"+ofToString(y);
+    if( (x >= CANVAS_MARGIN_LEFT) and (y >= CANVAS_MARGIN_TOP ) and
+       (x <= CANVAS_MARGIN_LEFT + CANVAS_SIZE) and (y <= CANVAS_MARGIN_TOP + CANVAS_SIZE) ){
+        b_MouseOn = true;
+        guimsg = ofToString(x)+":"+ofToString(y);
+    }
+    i_InitializeCount = 0;
 }
 
 //--------------------------------------------------------------
