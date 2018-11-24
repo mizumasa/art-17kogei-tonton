@@ -253,8 +253,8 @@ public:
     vector<vector<ofVec2f>> vvv_MousePoint;
     
     ofxAssimpModelLoader model_base;
-
-    
+    float f_AlphaRatio;
+    int i_Count;
     int i_InitializeCount;
 /*
     ofxVideoRecorder    vidRecorder;

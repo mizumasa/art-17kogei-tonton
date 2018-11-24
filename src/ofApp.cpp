@@ -233,6 +233,8 @@ void ofApp::setup(){
     b_HammerOrBit = false;
     
     i_InitializeCount = 0;
+    f_AlphaRatio = 0;
+    i_Count = 0;
 }
 
 //--------------------------------------------------------------
@@ -290,6 +292,13 @@ void ofApp::update(){
     if(i_InitializeCount > 60 * 5){
         vv_MousePoint.clear();
         vvv_MousePoint.clear();
+    }
+    
+    i_PatternMode = int( ofGetElapsedTimeMillis() / 2000. ) % PATTERN_NUM;
+    i_Count += 1;
+    if(i_Count == 60 * 2){
+        changeSelectedHuman();
+        i_Count = 0;
     }
 }
 
@@ -543,8 +552,21 @@ void ofApp::draw(){
     
     ofSetColor(190, 192,194,255);
     ofDrawRectangle(CANVAS_MARGIN_LEFT, CANVAS_MARGIN_TOP,-1, CANVAS_SIZE, CANVAS_SIZE);
-    ofSetColor(0, 0, 0,255);
-    ofSetLineWidth(30);
+    
+    ofPushMatrix();
+    ofPushStyle();
+    f_AlphaRatio = int( (sin( ofGetElapsedTimef() * 5 )+1) / 2 * 255);
+    ofSetColor(255, 0, 0, f_AlphaRatio);
+    ofSetLineWidth(60);
+    ofNoFill();
+    ofDrawRectangle(CANVAS_MARGIN_LEFT - 1, CANVAS_MARGIN_TOP - 1, 0, CANVAS_SIZE+2, CANVAS_SIZE+2);
+    ofDrawRectangle(CANVAS_MARGIN_LEFT - 4, CANVAS_MARGIN_TOP - 4, 0, CANVAS_SIZE+8, CANVAS_SIZE+8);
+
+    ofPopStyle();
+    ofPopMatrix();
+    
+    ofSetColor(10, 10, 10,255);
+    ofSetLineWidth(60);
     ofFill();
     //ofDrawRectangle(50, 100,10, 200, 200);
     for(int i = 0; i<vvv_MousePoint.size(); i++){
@@ -838,7 +860,8 @@ void ofApp::changeSelectedHuman(bool _b_count){
     if(b_HammerOrBit){
         rollCam.setPos(ofRandom(-20, 20), ofRandom(10, 30), 0);
     }else{
-        rollCam.setRandomPos();
+        //rollCam.setRandomPos();
+        rollCam.setPos(ofRandom(-20, 20), ofRandom(10, 30), 0);
     }
 }
 
